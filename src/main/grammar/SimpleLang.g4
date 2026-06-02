@@ -40,27 +40,37 @@ module returns [Module moduleRet]
 
     ;
 
-structDef returns [Struct structRet]
+structDef returns [Struct structRet] // change
     :
         k=KW_STRUCT
         i=ID
+        { 
+            $structRet = new Struct(new Identifier($i.text));
+            $structRet.setLine($i.line); 
+        }
         KW_BEGIN
-        member*
+        (m=member 
+            { 
+                if ($m.memberRet != null) {
+                    $structRet.addMember((main.ast.declarations.Member) $m.memberRet);
+                }
+            }
+        )*
         KW_END
-
     ;
 
-member
+member returns [ASTNode memberRet]       // change
     :
         accessModifier?
         m=method_decl
+        { $memberRet = $m.methodRet; }
 
     |
 
         accessModifier?
         v=vardecl
-
         SEMI
+        { $memberRet = $v.varRet; }
     ;
 
 accessModifier returns [AccessModifier accessModifierRet]
@@ -183,9 +193,11 @@ st returns [Statement statementRet]
         { $statementRet.setLine($ifs.ifStmtRet.getLine()); }
     |
         fs=forStmt
+        { $statementRet = $fs.forStmtRet; } // change
 
     |
         ws=whileStmt
+        { $statementRet = $ws.whileStmtRet; } // change
 
     |
         as=assignStmt
@@ -230,26 +242,51 @@ ifStmt returns [IfStmt ifStmtRet]
         { $ifStmtRet.setLine($k.line); }
     ;
 
-forStmt
+forStmt returns [Statement forStmtRet] // change
     :
-        KW_FOR
+        k=KW_FOR
         LPAREN
-        (initexpr (COMMA initexpr)*)?
+        { 
+            List<Statement> initList = new ArrayList<>(); 
+            List<Statement> updateList = new ArrayList<>();
+        }
+        (i1=initexpr { initList.add($i1.initExprRet); } (COMMA i2=initexpr { initList.add($i2.initExprRet); } )*)?
         SEMI
-        (expr)?
+        (e=expr)?
         SEMI
-        (loc ASSIGN expr (COMMA loc ASSIGN expr)*)?
+        (l1=loc ASSIGN e1=expr 
+            { 
+                AssignStmt as1 = new AssignStmt($l1.locationRet, $e1.expressionRet);
+                as1.setLine($l1.locationRet.getLine());
+                updateList.add(as1); 
+            } 
+            (COMMA l2=loc ASSIGN e2=expr 
+                { 
+                    AssignStmt as2 = new AssignStmt($l2.locationRet, $e2.expressionRet);
+                    as2.setLine($l2.locationRet.getLine());
+                    updateList.add(as2); 
+                }
+            )*
+        )?
         RPAREN
-        st
+        s=st
+        {
+            $forStmtRet = new ForStmt(initList, $e.expressionRet, updateList, $s.statementRet);
+            $forStmtRet.setLine($k.line);
+        }
     ;
 
-whileStmt
+whileStmt returns [Statement whileStmtRet] // change
     :
-        KW_WHILE
+        k=KW_WHILE
         LPAREN
-        expr
+        e=expr
         RPAREN
-        st
+        s=st
+        { 
+            $whileStmtRet = new WhileStmt($e.expressionRet, $s.statementRet); 
+            $whileStmtRet.setLine($k.line);
+        }
     ;
 assignStmt returns [AssignStmt assignStmtRet]
     :

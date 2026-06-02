@@ -1,0 +1,6 @@
+.venv/
+build/
+.gradle/
+.idea/
+*.iml
+*.class

@@ -27,14 +27,14 @@ public abstract class Visitor<T> implements IVisitor<T> {
     public T visit(Var varDeclaration) { return null; }
     @Override 
     public T visit(Identifier identifier) { return null; }
-    @Override 
-    public T visit(AssignmentStmt assignmentStmt) { return null; }
+    @Override
+    public T visit(AssignStmt assignStmt) { return null; }
     @Override 
     public T visit(Block block) { return null; }
     @Override 
-    public T visit(BreakStmt breakStmt) { return null; }
+    public T visit(BreakJump breakJump) { return null; }
     @Override 
-    public T visit(ContinueStmt continueStmt) { return null; }
+    public T visit(ContinueJump continueJump) { return null; }
     @Override 
     public T visit(ForStmt forStmt) { return null; }
     @Override 

@@ -23,10 +23,10 @@ public interface IVisitor<T> {
 
     // change
     // Statements
-    T visit(AssignmentStmt assignmentStmt);
+    T visit(AssignStmt assignStmt);
     T visit(Block block);
-    T visit(BreakStmt breakStmt);
-    T visit(ContinueStmt continueStmt);
+    T visit(BreakJump breakJump);
+    T visit(ContinueJump continueJump);
     T visit(ForStmt forStmt);
     T visit(IfStmt ifStmt);
     T visit(InputStmt inputStmt);

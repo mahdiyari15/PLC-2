@@ -37,7 +37,7 @@ public class PrintVisitor extends Visitor<Void> {
     @Override
     public Void visit(Module module) {
         if (isCountingPhase) {
-            modulesCount++;
+            modulesCount++; 
             return null;
         }
 
@@ -48,7 +48,7 @@ public class PrintVisitor extends Visitor<Void> {
         for (Member member : module.getMembers()) {
             member.accept(this);
         }
-        isCountingPhase = false;
+        isCountingPhase = false; 
 
         System.out.println("\tmodule " + module.getName().getName() + " [methods:" + currentMethodsCount + " fields:" + currentFieldsCount + "]");
 
@@ -66,7 +66,7 @@ public class PrintVisitor extends Visitor<Void> {
     @Override
     public Void visit(Struct struct) {
         if (isCountingPhase) {
-            structsCount++;
+            structsCount++; 
             return null;
         }
 
@@ -95,7 +95,7 @@ public class PrintVisitor extends Visitor<Void> {
     @Override
     public Void visit(VarDecl varDecl) {
         if (isCountingPhase) {
-            currentFieldsCount++;
+            currentFieldsCount++; 
             return null;
         }
 
@@ -117,7 +117,7 @@ public class PrintVisitor extends Visitor<Void> {
     @Override
     public Void visit(MethodDecl methodDecl) {
         if (isCountingPhase) {
-            currentMethodsCount++;
+            currentMethodsCount++; 
             return null;
         }
 
@@ -136,9 +136,9 @@ public class PrintVisitor extends Visitor<Void> {
         String argsStr = argsBuilder.length() == 0 ? "void" : argsBuilder.toString();
         String retStr = getTypeStringWithoutInstanceof(method.getReturnType());
 
-        String suffix = "):";
+        String suffix;
         if (!accessMod.isEmpty()) {
-            suffix += accessMod + " ";
+            suffix = "):" + accessMod + " ";
         } else {
             suffix = ") ";
         }
@@ -149,18 +149,44 @@ public class PrintVisitor extends Visitor<Void> {
 
     private String getTypeStringWithoutInstanceof(Type type) {
         if (type == null) return "unknown";
-        
-        String className = type.getClass().getSimpleName();
-        
-        if (className.equals("IntType")) return "int";
-        if (className.equals("FloatType")) return "float";
-        if (className.equals("DoubleType")) return "double";
-        if (className.equals("CharType")) return "char";
-        if (className.equals("BoolType")) return "bool";
-        if (className.equals("VoidType")) return "void";
-        if (className.equals("StructType")) {
-            return ((StructType) type).getStructName().getName();
-        }
-        return "unknown";
+        TypeStringVisitor typeVisitor = new TypeStringVisitor();
+        return type.accept(typeVisitor);
+    }
+}
+
+class TypeStringVisitor extends Visitor<String> {
+    @Override 
+    public String visit(IntType intType) { 
+        return "int"; 
+    }
+    
+    @Override 
+    public String visit(FloatType floatType) { 
+        return "float"; 
+    }
+    
+    @Override 
+    public String visit(DoubleType doubleType) { 
+        return "double"; 
+    }
+    
+    @Override 
+    public String visit(CharType charType) { 
+        return "char"; 
+    }
+    
+    @Override 
+    public String visit(BoolType boolType) { 
+        return "bool"; 
+    }
+    
+    @Override 
+    public String visit(VoidType voidType) { 
+        return "void"; 
+    }
+    
+    @Override 
+    public String visit(StructType structType) { 
+        return structType.getStructName().getName(); 
     }
 }

@@ -1,0 +1,6 @@
+program [modules:1 structs:1]
+        struct User [fields:2]
+                field id int:public
+                field rating float
+        module AuthSystem [methods:1 fields:0]
+                method register (User -> void):public [statements:1]

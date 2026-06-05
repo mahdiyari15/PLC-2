@@ -1,0 +1,11 @@
+module NetworkNode begin
+    private bool isActive;
+
+    void initialize(int port, bool secure, double timeout) begin
+        this.isActive = true;
+    end
+
+    public bool checkStatus() begin
+        return this.isActive;
+    end
+end 

@@ -11,7 +11,7 @@ public class IfStmt extends Statement {
     public IfStmt(Expression condition, Statement thenBranch) {
         this.condition = condition;
         this.thenBranch = thenBranch;
-    }
+    } 
 
     @Override
     public <T> T accept(IVisitor<T> visitor) {

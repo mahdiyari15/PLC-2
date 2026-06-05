@@ -1,0 +1,45 @@
+module ClusterNode begin
+    int nodeId;
+    public mut bool isActive;
+
+    public void startNode() begin
+        isActive = true;
+    end
+
+    public void stopNode() begin
+        isActive = false;
+    end
+end
+
+module EventBroker begin
+    public int partitionCount;
+    public float throughput;
+    int droppedEvents;
+
+    public void ingestBatch(int batchSize, float timestamp, bool requireAck, char priority) begin
+        mut int i;
+        mut int successCount = 0;
+
+        for (i = 0; i < batchSize; i = i + 1) begin
+            if (requireAck) begin
+                successCount = successCount + 1;
+            end
+        end
+
+        output successCount;
+    end
+
+    void scaleCluster(int targetNodes) begin
+        mut int currentNodes = 5;
+        while (currentNodes < targetNodes) begin
+            currentNodes = currentNodes + 1;
+        end
+    end
+
+    public float calculateMetrics() begin
+        return throughput;
+    end
+
+    void idleWorker() begin
+    end
+end

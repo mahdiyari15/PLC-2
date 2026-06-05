@@ -1,26 +1,29 @@
-package main.ast.expressions; // change
+package main.ast.expressions;
 
 import main.visitor.IVisitor;
 
 public class BinaryExpression extends Expression {
-    private Expression left;
-    private Expression right;
-    private BinaryOperator binaryOperator;
+    private final Expression leftOperand;
+    private final Expression rightOperand;
+    private final BinaryOperator opType;
 
-    public BinaryExpression(Expression left, Expression right, BinaryOperator binaryOperator) {
-        this.left = left;
-        this.right = right;
-        this.binaryOperator = binaryOperator;
+    public BinaryExpression(Expression leftOperand, Expression rightOperand, BinaryOperator opType) {
+        this.leftOperand = leftOperand;
+        this.rightOperand = rightOperand;
+        this.opType = opType;
     }
 
-    public Expression getLeft() { return left; }
-    public void setLeft(Expression left) { this.left = left; }
+    public Expression getLeft() {
+        return this.leftOperand;
+    }
 
-    public Expression getRight() { return right; }
-    public void setRight(Expression right) { this.right = right; }
+    public Expression getRight() {
+        return this.rightOperand;
+    }
 
-    public BinaryOperator getBinaryOperator() { return binaryOperator; }
-    public void setBinaryOperator(BinaryOperator binaryOperator) { this.binaryOperator = binaryOperator; }
+    public BinaryOperator getOperator() {
+        return this.opType;
+    }
 
     @Override
     public <T> T accept(IVisitor<T> visitor) {

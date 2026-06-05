@@ -1,99 +1,111 @@
 grammar SimpleLang;
-@header {
-    import main.ast.core.*;
 
+@header {
+    package main.grammar;
+    import main.ast.core.*;
     import main.ast.declarations.*;
     import main.ast.declarations.Module;
     import main.ast.statements.*;
-
+    import main.ast.expressions.*;
+    import main.ast.expressions.literals.*;
+    import main.ast.types.*;
 }
-
+ 
+// --- ENTRY POINT ---
 program returns [Program programRet]
     :
         { $programRet = new Program(); }
-        (t=topLevelDecl { $programRet.addTopLevelDeclaration($t.topLevelDeclRet); })*
-        EOF 
+        (currentDecl=topLevelDecl { $programRet.addTopLevelDeclaration($currentDecl.topLevelDeclRet); })*
+        EOF
     ;
 
 topLevelDecl returns [TopLevelDecl topLevelDeclRet]
     :
-        m=module
-        { $topLevelDeclRet =$m.moduleRet;
-
-         }
+        moduleNode=module { $topLevelDeclRet = $moduleNode.moduleRet; }
     |
-        s=structDef
-        { $topLevelDeclRet = $s.structRet;
-      }
+        structNode=structDef { $topLevelDeclRet = $structNode.structRet; }
     ;
 
 module returns [Module moduleRet]
     :
-        k=KW_MODULE
-        i=ID
-        { $moduleRet = new Module(new Identifier($i.text));
-        $moduleRet.setLine($i.line); }
-        (KW_INCLUDES i1=ID { $moduleRet.addInclude(new Identifier($i1.text)); } (COMMA i2=ID { $moduleRet.addInclude(new Identifier($i2.text)); } )*)?
+        KW_MODULE
+        moduleIdent=ID
+        { 
+          $moduleRet = new Module(new Identifier($moduleIdent.text));
+          $moduleRet.setLine($moduleIdent.line); 
+        }
+        (KW_INCLUDES incId1=ID { $moduleRet.addInclude(new Identifier($incId1.text)); } (COMMA incId2=ID { $moduleRet.addInclude(new Identifier($incId2.text)); } )*)?
         KW_BEGIN
-        (member)*
+        (currentMember=member { $moduleRet.addMember($currentMember.memberRet); })*
         KW_END
-
     ;
 
-structDef returns [Struct structRet] // change
+structDef returns [Struct structRet]
     :
-        k=KW_STRUCT
-        i=ID
+        KW_STRUCT
+        structIdent=ID
         { 
-            $structRet = new Struct(new Identifier($i.text));
-            $structRet.setLine($i.line); 
+          $structRet = new Struct(new Identifier($structIdent.text));
+          $structRet.setLine($structIdent.line); 
         }
         KW_BEGIN
-        (m=member 
-            { 
-                if ($m.memberRet != null) {
-                    $structRet.addMember((main.ast.declarations.Member) $m.memberRet);
-                }
-            }
-        )*
+        (currentMember=member { $structRet.addMember($currentMember.memberRet); })*
         KW_END
     ;
 
-member returns [ASTNode memberRet]       // change
+member returns [Member memberRet]
     :
-        accessModifier?
-        m=method_decl
-        { $memberRet = $m.methodRet; }
-
-    |
-
-        accessModifier?
-        v=vardecl
-        SEMI
-        { $memberRet = $v.varRet; }
+        accessKind=accessModifier targetMethod=method_decl 
+        {
+            MethodDecl methodDeclarationWrapper = new MethodDecl();
+            methodDeclarationWrapper.setMethod($targetMethod.methodRet);
+            methodDeclarationWrapper.setAccessModifier($accessKind.accessModifierRet);
+            $memberRet = methodDeclarationWrapper;
+        }
+    | 
+        targetMethod=method_decl 
+        {
+            MethodDecl methodDeclarationWrapper = new MethodDecl();
+            methodDeclarationWrapper.setMethod($targetMethod.methodRet);
+            $memberRet = methodDeclarationWrapper;
+        }
+    | 
+        accessKind=accessModifier targetVar=vardecl SEMI 
+        {
+            VarDecl variableDeclarationWrapper = new VarDecl();
+            variableDeclarationWrapper.setVar($targetVar.varRet);
+            variableDeclarationWrapper.setAccessModifier($accessKind.accessModifierRet);
+            $memberRet = variableDeclarationWrapper;
+        }
+    | 
+        targetVar=vardecl SEMI 
+        {
+            VarDecl variableDeclarationWrapper = new VarDecl();
+            variableDeclarationWrapper.setVar($targetVar.varRet);
+            $memberRet = variableDeclarationWrapper;
+        }
     ;
 
 accessModifier returns [AccessModifier accessModifierRet]
     :
-        pr=KW_PRIVATE
-        { $accessModifierRet = AccessModifier.PRIVATE; }
+        KW_PRIVATE { $accessModifierRet = AccessModifier.PRIVATE; }
     |
-        pu=KW_PUBLIC
-        { $accessModifierRet = AccessModifier.PUBLIC; }
+        KW_PUBLIC  { $accessModifierRet = AccessModifier.PUBLIC; }
     ;
 
 method_decl returns [Method methodRet]
     :
-        t=type
-        i=ID
+        returnType=type
+        methodIdent=ID
         LPAREN
-        a=arguments
+        methodArgs=arguments
         RPAREN
-        b=block
-        { $methodRet = new Method($t.typeRet, new Identifier($i.text), $a.parametersRet, $b.blockRet); }
-        { $methodRet.setLine($i.line); }
+        methodBody=block
+        { 
+          $methodRet = new Method($returnType.typeRet, new Identifier($methodIdent.text), $methodArgs.parametersRet, $methodBody.blockRet);
+          $methodRet.setLine($methodIdent.line); 
+        }
     ;
-
 
 arguments returns [List<Parameter> parametersRet]
     :
@@ -103,359 +115,359 @@ arguments returns [List<Parameter> parametersRet]
 
 parameter returns [Parameter parameterRet]
     :
-        { boolean isMut = false; }
-        (KW_MUT { isMut = true; } )?
-        t=type
-        i=ID
-        { $parameterRet = new Parameter(isMut, $t.typeRet, new Identifier($i.text)); }
-        { $parameterRet.setLine($i.line); }
+        { boolean parameterIsMutable = false; }
+        (KW_MUT { parameterIsMutable = true; })?
+        paramType=type
+        paramIdent=ID
+        { 
+          $parameterRet = new Parameter(parameterIsMutable, $paramType.typeRet, new Identifier($paramIdent.text));
+          $parameterRet.setLine($paramIdent.line); 
+        }
     ;
 
 type returns [Type typeRet]
     :
-        ID
-
-    |
-        KW_INT
-
-    |
-        KW_FLOAT
-
-    |
-       KW_DOUBLE
-
-    |
-        KW_CHAR
-
-    |
-        KW_VOID
-
-    |
-        KW_BOOL
-
+        KW_INT { $typeRet = new IntType(); $typeRet.setLine($KW_INT.line); }
+    |   KW_FLOAT { $typeRet = new FloatType(); $typeRet.setLine($KW_FLOAT.line); }
+    |   KW_DOUBLE { $typeRet = new DoubleType(); $typeRet.setLine($KW_DOUBLE.line); }
+    |   KW_CHAR { $typeRet = new CharType(); $typeRet.setLine($KW_CHAR.line); }
+    |   KW_BOOL { $typeRet = new BoolType(); $typeRet.setLine($KW_BOOL.line); }
+    |   KW_VOID { $typeRet = new VoidType(); $typeRet.setLine($KW_VOID.line); }
+    |   customTypeName=ID { $typeRet = new StructType(new Identifier($customTypeName.text)); $typeRet.setLine($customTypeName.line); }
     ;
 
 vardecl returns [Var varRet]
     :
-        { boolean isMut = false; }
-        (KW_MUT { isMut = true; } )?
-        (t=type { $varRet = new Var(isMut, $t.typeRet); } | c=cons { $varRet = new Var(isMut, $c.constructorCallRet); } )
-        i=ID
-        { $varRet.setName(new Identifier($i.text)); }
-        { $varRet.setLine($i.line); }
+        { boolean varIsMutable = false; }
+        (KW_MUT { varIsMutable = true; })?
+        (varType=type { $varRet = new Var(varIsMutable, $varType.typeRet); } 
+        | varCons=cons { $varRet = new Var(varIsMutable, $varCons.constructorCallRet); })
+        varIdent=ID
+        { 
+          $varRet.setName(new Identifier($varIdent.text));
+          $varRet.setLine($varIdent.line); 
+        }
     ;
 
 cons returns [ConstructorCall constructorCallRet]
     :
-        i=ID
-        { $constructorCallRet = new ConstructorCall(new Identifier($i.text)); }
+        classIdent=ID
+        { $constructorCallRet = new ConstructorCall(new Identifier($classIdent.text)); }
         LPAREN
-        (e1=expr { $constructorCallRet.addArgument($e1.expressionRet); } (COMMA e2=expr { $constructorCallRet.addArgument($e2.expressionRet); } )*)?
+        (arg1=expr { $constructorCallRet.addArgument($arg1.expressionRet); } (COMMA arg2=expr { $constructorCallRet.addArgument($arg2.expressionRet); } )*)?
         RPAREN
-        { $constructorCallRet.setLine($i.line); }
+        { $constructorCallRet.setLine($classIdent.line); }
     ;
 
 block returns [Block blockRet]
     :
         { $blockRet = new Block(); }
-        k=KW_BEGIN
-        (s=st { $blockRet.addStatement($s.statementRet); } )*
+        startKey=KW_BEGIN
+        (currentStmt=st { $blockRet.addStatement($currentStmt.statementRet); })*
         KW_END
-        { $blockRet.setLine($k.line); }
+        { $blockRet.setLine($startKey.line); }
     ;
 
 st returns [Statement statementRet]
     :
-        b=block
-        { $statementRet = $b.blockRet; }
-        { $statementRet.setLine($b.blockRet.getLine()); }
+        innerBlock=block
+        { 
+          $statementRet = $innerBlock.blockRet; 
+          $statementRet.setLine($innerBlock.blockRet.getLine()); 
+        }
     |
-        vd=vardecl
-        { $statementRet = new VarDeclStmt($vd.varRet); }
-        SEMI
-        { $statementRet.setLine($vd.varRet.getLine()); }
+        singleVar=vardecl SEMI
+        { 
+          $statementRet = new VarDeclStmt($singleVar.varRet); 
+          $statementRet.setLine($singleVar.varRet.getLine()); 
+        }
     |
-        v=vardecl
-        { $statementRet = new VarDeclStmt($v.varRet); }
-        ASSIGN
-        e=expr
-        { ((VarDeclStmt)$statementRet).setInitial($e.expressionRet); }
-        SEMI
-        { $statementRet.setLine($e.expressionRet.getLine()); }
+        initVar=vardecl ASSIGN targetExpr=expr SEMI
+        { 
+          $statementRet = new VarDeclStmt($initVar.varRet); 
+          ((VarDeclStmt)$statementRet).setInitial($targetExpr.expressionRet);
+          $statementRet.setLine($targetExpr.expressionRet.getLine()); 
+        }
     |
-        mc=methodcall
-        { $statementRet = new MethodCallStmt($mc.methodCallRet); }
-        SEMI
-        { $statementRet.setLine($mc.methodCallRet.getLine()); }
+        callStmt=methodcall SEMI
+        { 
+          $statementRet = new MethodCallStmt($callStmt.methodCallRet); 
+          $statementRet.setLine($callStmt.methodCallRet.getLine()); 
+        }
     |
-        ifs=ifStmt
-        { $statementRet = $ifs.ifStmtRet; }
-        { $statementRet.setLine($ifs.ifStmtRet.getLine()); }
+        conditional=ifStmt
+        { 
+          $statementRet = $conditional.ifStmtRet; 
+          $statementRet.setLine($conditional.ifStmtRet.getLine()); 
+        }
     |
-        fs=forStmt
-        { $statementRet = $fs.forStmtRet; } // change
-
+        assignment=assignStmt
+        { 
+          $statementRet = $assignment.assignStmtRet; 
+          $statementRet.setLine($assignment.assignStmtRet.getLine()); 
+        }
     |
-        ws=whileStmt
-        { $statementRet = $ws.whileStmtRet; } // change
-
+        retStmt=returnStmt
+        { 
+          $statementRet = $retStmt.returnStmtRet; 
+          $statementRet.setLine($retStmt.returnStmtRet.getLine()); 
+        }
     |
-        as=assignStmt
-        { $statementRet = $as.assignStmtRet; }
-        { $statementRet.setLine($as.assignStmtRet.getLine()); }
+        inStmt=inputStmt
+        { 
+          $statementRet = $inStmt.inputStmtRet; 
+          $statementRet.setLine($inStmt.inputStmtRet.getLine()); 
+        }
     |
-        rs=returnStmt
-        { $statementRet = $rs.returnStmtRet; }
-        { $statementRet.setLine($rs.returnStmtRet.getLine()); }
+        outStmt=outputStmt
+        { 
+          $statementRet = $outStmt.outputStmtRet; 
+          $statementRet.setLine($outStmt.outputStmtRet.getLine()); 
+        }
     |
-        is=inputStmt
-        { $statementRet = $is.inputStmtRet; }
-        { $statementRet.setLine($is.inputStmtRet.getLine()); }
+        flowJump=jumpStmt
+        { 
+          $statementRet = $flowJump.jumpStmtRet; 
+          $statementRet.setLine($flowJump.jumpStmtRet.getLine()); 
+        }
     |
-        os=outputStmt
-        { $statementRet = $os.outputStmtRet; }
-        { $statementRet.setLine($os.outputStmtRet.getLine()); }
+        loopFor=forStmt
+        { 
+          $statementRet = $loopFor.forStmtRet; 
+          $statementRet.setLine($loopFor.forStmtRet.getLine()); 
+        }
     |
-        js=jumpStmt
-        { $statementRet = $js.jumpStmtRet; }
-        { $statementRet.setLine($js.jumpStmtRet.getLine()); }
+        loopWhile=whileStmt
+        { 
+          $statementRet = $loopWhile.whileStmtRet; 
+          $statementRet.setLine($loopWhile.whileStmtRet.getLine()); 
+        }
     ;
+
 jumpStmt returns [JumpStmt jumpStmtRet]
     :
-        kb=KW_BREAK
-        { $jumpStmtRet = new BreakJump(); }
-        { $jumpStmtRet.setLine($kb.line); }
+        KW_BREAK { $jumpStmtRet = new BreakJump(); $jumpStmtRet.setLine($KW_BREAK.line); }
     |
-        kc=KW_CONTINUE
-        { $jumpStmtRet = new ContinueJump(); }
-        { $jumpStmtRet.setLine($kc.line); }
+        KW_CONTINUE { $jumpStmtRet = new ContinueJump(); $jumpStmtRet.setLine($KW_CONTINUE.line); }
     ;
+
 ifStmt returns [IfStmt ifStmtRet]
     :
-        k=KW_IF
+        startKey=KW_IF
         LPAREN
-        e=expr
+        condExpr=expr
         RPAREN
-        s1=st
-        { $ifStmtRet = new IfStmt($e.expressionRet, $s1.statementRet); }
-        (KW_ELSE s2=st { $ifStmtRet.setElseBranch($s2.statementRet); } )?
-        { $ifStmtRet.setLine($k.line); }
+        thenBranch=st
+        { $ifStmtRet = new IfStmt($condExpr.expressionRet, $thenBranch.statementRet); }
+        (KW_ELSE elseBranch=st { $ifStmtRet.setElseBranch($elseBranch.statementRet); })?
+        { $ifStmtRet.setLine($startKey.line); }
     ;
 
-forStmt returns [Statement forStmtRet] // change
+forStmt returns [ForStmt forStmtRet]
     :
-        k=KW_FOR
-        LPAREN
+        startKey=KW_FOR
         { 
-            List<Statement> initList = new ArrayList<>(); 
-            List<Statement> updateList = new ArrayList<>();
+          $forStmtRet = new ForStmt(); 
+          $forStmtRet.setLine($startKey.line); 
         }
-        (i1=initexpr { initList.add($i1.initExprRet); } (COMMA i2=initexpr { initList.add($i2.initExprRet); } )*)?
+        LPAREN
+        (init1=initexpr { $forStmtRet.addInit($init1.initExprRet); } (COMMA init2=initexpr { $forStmtRet.addInit($init2.initExprRet); })*)?
         SEMI
-        (e=expr)?
+        (loopCond=expr { $forStmtRet.setCondition($loopCond.expressionRet); })?
         SEMI
-        (l1=loc ASSIGN e1=expr 
-            { 
-                AssignStmt as1 = new AssignStmt($l1.locationRet, $e1.expressionRet);
-                as1.setLine($l1.locationRet.getLine());
-                updateList.add(as1); 
-            } 
-            (COMMA l2=loc ASSIGN e2=expr 
-                { 
-                    AssignStmt as2 = new AssignStmt($l2.locationRet, $e2.expressionRet);
-                    as2.setLine($l2.locationRet.getLine());
-                    updateList.add(as2); 
-                }
-            )*
-        )?
+        (updateLoc1=loc eqKey1=ASSIGN updateExpr1=expr 
+        { 
+          AssignStmt loopUpdate1 = new AssignStmt($updateLoc1.locationRet, $updateExpr1.expressionRet); 
+          loopUpdate1.setLine($eqKey1.line); 
+          $forStmtRet.addUpdate(loopUpdate1); 
+        } 
+        (COMMA updateLoc2=loc eqKey2=ASSIGN updateExpr2=expr 
+        { 
+          AssignStmt loopUpdate2 = new AssignStmt($updateLoc2.locationRet, $updateExpr2.expressionRet); 
+          loopUpdate2.setLine($eqKey2.line); 
+          $forStmtRet.addUpdate(loopUpdate2); 
+        })*)?
         RPAREN
-        s=st
-        {
-            $forStmtRet = new ForStmt(initList, $e.expressionRet, updateList, $s.statementRet);
-            $forStmtRet.setLine($k.line);
+        bodyStmt=st
+        { $forStmtRet.setBody($bodyStmt.statementRet); }
+    ;
+
+whileStmt returns [WhileStmt whileStmtRet]
+    :
+        startKey=KW_WHILE
+        LPAREN
+        loopCond=expr
+        RPAREN
+        bodyStmt=st
+        { 
+          $whileStmtRet = new WhileStmt($loopCond.expressionRet, $bodyStmt.statementRet); 
+          $whileStmtRet.setLine($startKey.line); 
         }
     ;
 
-whileStmt returns [Statement whileStmtRet] // change
-    :
-        k=KW_WHILE
-        LPAREN
-        e=expr
-        RPAREN
-        s=st
-        { 
-            $whileStmtRet = new WhileStmt($e.expressionRet, $s.statementRet); 
-            $whileStmtRet.setLine($k.line);
-        }
-    ;
 assignStmt returns [AssignStmt assignStmtRet]
     :
-        l=loc
-        a=ASSIGN
-        e=expr
-        { $assignStmtRet = new AssignStmt($l.locationRet, $e.expressionRet); }
+        targetLoc=loc
+        eqKey=ASSIGN
+        sourceExpr=expr
+        { $assignStmtRet = new AssignStmt($targetLoc.locationRet, $sourceExpr.expressionRet); }
         SEMI
-        { $assignStmtRet.setLine($a.line); }
+        { $assignStmtRet.setLine($eqKey.line); }
     ;
 
 returnStmt returns [ReturnStmt returnStmtRet]
     :
         { $returnStmtRet = new ReturnStmt(); }
-        k=KW_RETURN
-        (e=expr { $returnStmtRet.setValue($e.expressionRet); } )?
+        startKey=KW_RETURN
+        (retExpr=expr { $returnStmtRet.setValue($retExpr.expressionRet); })?
         SEMI
-        { $returnStmtRet.setLine($k.line); }
+        { $returnStmtRet.setLine($startKey.line); }
     ;
 
 inputStmt returns [InputStmt inputStmtRet]
     :
-        k=KW_INPUT
-        l=loc
-        { $inputStmtRet = new InputStmt($l.locationRet); }
+        startKey=KW_INPUT
+        targetLoc=loc
+        { $inputStmtRet = new InputStmt($targetLoc.locationRet); }
         SEMI
-        { $inputStmtRet.setLine($k.line); }
+        { $inputStmtRet.setLine($startKey.line); }
     ;
 
 outputStmt returns [OutputStmt outputStmtRet]
     :
-        k=KW_OUTPUT
-        e=expr
-        { $outputStmtRet = new OutputStmt($e.expressionRet); }
+        startKey=KW_OUTPUT
+        targetExpr=expr
+        { $outputStmtRet = new OutputStmt($targetExpr.expressionRet); }
         SEMI
-        { $outputStmtRet.setLine($k.line); }
+        { $outputStmtRet.setLine($startKey.line); }
     ;
 
 loc returns [Location locationRet]
     :
-        s=simpleLoc
-        { $locationRet = $s.simpleLocRet; }
-
+        s=simpleLoc { $locationRet = $s.simpleLocRet; }
     |
-        m=memberLoc
-        { $locationRet = $m.memberLocRet; }
-
+        m=memberLoc { $locationRet = $m.memberLocRet; }
     |
-        t=thisLoc
-        { $locationRet = $t.thisLocRet; }
-        { $locationRet.setLine($t.thisLocRet.getLine()); }
+        t=thisLoc 
+        { 
+          $locationRet = $t.thisLocRet; 
+          $locationRet.setLine($t.thisLocRet.getLine()); 
+        }
     ;
 
 simpleLoc returns [SimpleLoc simpleLocRet]
     :
-        i=ID
-        { $simpleLocRet = new SimpleLoc(new Identifier($i.text)); }
-        { $simpleLocRet.setLine($i.line); }
+        identNode=ID
+        { $simpleLocRet = new SimpleLoc(new Identifier($identNode.text)); }
+        { $simpleLocRet.setLine($identNode.line); }
     ;
 
 memberLoc returns [MemberLoc memberLocRet]
     :
-        i=ID
+        parentIdent=ID
         DOT
-        l=loc
-        { $memberLocRet = new MemberLoc(new Identifier($i.text), $l.locationRet); }
-        { $memberLocRet.setLine($i.line); }
+        childLoc=loc
+        { $memberLocRet = new MemberLoc(new Identifier($parentIdent.text), $childLoc.locationRet); }
+        { $memberLocRet.setLine($parentIdent.line); }
     ;
-
 
 thisLoc returns [ThisLoc thisLocRet]
     :
         { $thisLocRet = new ThisLoc(); }
-        k=KW_THIS
-        (DOT l=loc { $thisLocRet.setLoc($l.locationRet); } )?
-        { $thisLocRet.setLine($k.line); }
+        startKey=KW_THIS
+        (DOT childLoc=loc { $thisLocRet.setLoc($childLoc.locationRet); })?
+        { $thisLocRet.setLine($startKey.line); }
     ;
 
 methodcall returns [MethodCall methodCallRet]
     :
         { $methodCallRet = new MethodCall(); }
-
-        (l=loc DOT {$methodCallRet.setInstance($l.locationRet); })?
-        i=ID
-        { $methodCallRet.setCallee(new Identifier($i.text)); }
-
+        (instanceLoc=loc DOT { $methodCallRet.setInstance($instanceLoc.locationRet); })?
+        calleeIdent=ID
+        { $methodCallRet.setCallee(new Identifier($calleeIdent.text)); }
         LPAREN
-        (e1=expr
-         { $methodCallRet.addArgument($e1.expressionRet);}
-         (COMMA e2=expr
-        { $methodCallRet.addArgument($e2.expressionRet); }
-          )*)?
+        (exprArg1=expr { $methodCallRet.addArgument($exprArg1.expressionRet); }
+         (COMMA exprArg2=expr { $methodCallRet.addArgument($exprArg2.expressionRet); })*)?
         RPAREN
-        { $methodCallRet.setLine($i.line); }
+        { $methodCallRet.setLine($calleeIdent.line); }
     ;
 
-expr returns[Expression expressionRet]
-    :
-        loc
-
-    |
-        KW_THIS
-
-    |
-        methodcall
-
-    |
-        cons
-
-    |
-        LPAREN expr RPAREN
-
-    |
-        CONSTINT
-
-    |
-        CONSTFLOAT
-
-    |
-        CONSTDOUBLE
-
-    |
-        CONSTCHAR
-
-    |
-        CONSTBOOL
-
-    |
-        (MINUS | KW_NOT) expr
-
-    |
-        expr (STAR | SLASH) expr
-
-    |
-        expr (PLUS | MINUS) expr
-
-    |
-        expr (LESS | GREATER | LESS_EQ | GREATER_EQ) expr
-
-    |
-        expr (EQUAL | NOT_EQUAL) expr
-
-    |
-        expr KW_AND expr
-
-    |
-        expr KW_OR expr
-
+expr returns [Expression expressionRet]
+    :   currentLoc=loc { $expressionRet = $currentLoc.locationRet; }
+    |   startKey=KW_THIS { $expressionRet = new ThisExpr(); $expressionRet.setLine($startKey.line); }
+    |   mCall=methodcall { $expressionRet = $mCall.methodCallRet; }
+    |   cCall=cons { $expressionRet = $cCall.constructorCallRet; }
+    |   LPAREN innerExpr=expr RPAREN { $expressionRet = $innerExpr.expressionRet; }
+    |   litInt=CONSTINT { $expressionRet = new IntLiteral(Integer.parseInt($litInt.text)); $expressionRet.setLine($litInt.line); }
+    |   litFloat=CONSTFLOAT { $expressionRet = new FloatLiteral(Float.parseFloat($litFloat.text)); $expressionRet.setLine($litFloat.line); }
+    |   litDouble=CONSTDOUBLE { $expressionRet = new DoubleLiteral(Double.parseDouble($litDouble.text)); $expressionRet.setLine($litDouble.line); }
+    |   litChar=CONSTCHAR { $expressionRet = new CharLiteral($litChar.text.charAt(1)); $expressionRet.setLine($litChar.line); }
+    |   litBool=CONSTBOOL { $expressionRet = new BoolLiteral(Boolean.parseBoolean($litBool.text)); $expressionRet.setLine($litBool.line); }
+    |   unaryOp=(MINUS | KW_NOT) targetExpr=expr 
+        {
+            UnaryOperator finalOp = $unaryOp.type == MINUS ? UnaryOperator.MINUS : UnaryOperator.NOT;
+            $expressionRet = new UnaryExpression(finalOp, $targetExpr.expressionRet);
+            $expressionRet.setLine($unaryOp.line);
+        }
+    |   leftMul=expr mulOp=(STAR | SLASH) rightMul=expr 
+        {
+            BinaryOperator finalOp = $mulOp.type == STAR ? BinaryOperator.MULT : BinaryOperator.DIV;
+            $expressionRet = new BinaryExpression($leftMul.expressionRet, $rightMul.expressionRet, finalOp);
+            $expressionRet.setLine($leftMul.expressionRet.getLine());
+        }
+    |   leftAdd=expr addOp=(PLUS | MINUS) rightAdd=expr 
+        {
+            BinaryOperator finalOp = $addOp.type == PLUS ? BinaryOperator.PLUS : BinaryOperator.MINUS;
+            $expressionRet = new BinaryExpression($leftAdd.expressionRet, $rightAdd.expressionRet, finalOp);
+            $expressionRet.setLine($leftAdd.expressionRet.getLine());
+        }
+    |   leftRel=expr relOp=(LESS | GREATER | LESS_EQ | GREATER_EQ) rightRel=expr 
+        {
+            BinaryOperator finalOp = null;
+            if ($relOp.type == LESS) finalOp = BinaryOperator.LESS;
+            else if ($relOp.type == GREATER) finalOp = BinaryOperator.GREATER;
+            else if ($relOp.type == LESS_EQ) finalOp = BinaryOperator.LESS_EQ;
+            else if ($relOp.type == GREATER_EQ) finalOp = BinaryOperator.GREATER_EQ;
+            $expressionRet = new BinaryExpression($leftRel.expressionRet, $rightRel.expressionRet, finalOp);
+            $expressionRet.setLine($leftRel.expressionRet.getLine());
+        }
+    |   leftEq=expr eqOp=(EQUAL | NOT_EQUAL) rightEq=expr 
+        {
+            BinaryOperator finalOp = $eqOp.type == EQUAL ? BinaryOperator.EQUAL : BinaryOperator.NOT_EQUAL;
+            $expressionRet = new BinaryExpression($leftEq.expressionRet, $rightEq.expressionRet, finalOp);
+            $expressionRet.setLine($leftEq.expressionRet.getLine());
+        }
+    |   leftAnd=expr KW_AND rightAnd=expr 
+        {
+            $expressionRet = new BinaryExpression($leftAnd.expressionRet, $rightAnd.expressionRet, BinaryOperator.AND);
+            $expressionRet.setLine($leftAnd.expressionRet.getLine());
+        }
+    |   leftOr=expr KW_OR rightOr=expr 
+        {
+            $expressionRet = new BinaryExpression($leftOr.expressionRet, $rightOr.expressionRet, BinaryOperator.OR);
+            $expressionRet.setLine($leftOr.expressionRet.getLine());
+        }
     ;
+
 initexpr returns [Statement initExprRet]
     :
-        v1=vardecl
-        { $initExprRet = new VarDeclStmt($v1.varRet); }
-        { $initExprRet.setLine($v1.varRet.getLine()); }
+        initVar1=vardecl { $initExprRet = new VarDeclStmt($initVar1.varRet); $initExprRet.setLine($initVar1.varRet.getLine()); }
     |
-        l1=loc
-        ASSIGN
-        e1=expr
-        { $initExprRet = new AssignStmt($l1.locationRet, $e1.expressionRet); }
-        { $initExprRet.setLine($l1.locationRet.getLine()); }
+        initLoc=loc ASSIGN targetExpr=expr
+        { 
+          $initExprRet = new AssignStmt($initLoc.locationRet, $targetExpr.expressionRet); 
+          $initExprRet.setLine($initLoc.locationRet.getLine()); 
+        }
     |
-        v2=vardecl
-        { $initExprRet = new VarDeclStmt($v2.varRet); }
-        ASSIGN
-        e2=expr
-        { ((VarDeclStmt)$initExprRet).setInitial($e2.expressionRet); }
-        { $initExprRet.setLine($v2.varRet.getLine()); }
+        initVar2=vardecl ASSIGN assignedExpr=expr
+        { 
+          $initExprRet = new VarDeclStmt($initVar2.varRet); 
+          ((VarDeclStmt)$initExprRet).setInitial($assignedExpr.expressionRet);
+          $initExprRet.setLine($initVar2.varRet.getLine()); 
+        }
     ;
 
+// --- LEXER RULES ---
 KW_MODULE   : 'module' ;
 KW_STRUCT   : 'struct' ;
 KW_INCLUDES : 'includes' ;
@@ -484,8 +496,8 @@ KW_MUT      : 'mut' ;
 KW_BREAK    : 'break' ;
 KW_CONTINUE : 'continue' ;
 KW_BOOL     : 'bool' ;
-CONSTBOOL   : 'true' | 'false' ;
 
+CONSTBOOL   : 'true' | 'false' ;
 SEMI        : ';' ;
 COMMA       : ',' ;
 LPAREN      : '(' ;
@@ -511,7 +523,6 @@ CONSTINT    : DIGIT+ ;
 CONSTFLOAT  : DIGIT+ DOT DIGIT+ ;
 CONSTDOUBLE : DIGIT+ DOT DIGIT+ EXPONENT SIGN? DIGIT+ ;
 CONSTCHAR   : '\'' . '\'' ;
-
 ID          : LETTER (LETTER | DIGIT | '_')* ;
 
 fragment LETTER   : [a-zA-Z] ;

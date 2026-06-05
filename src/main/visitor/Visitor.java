@@ -1,38 +1,60 @@
 package main.visitor;
 
 import main.ast.core.*;
-import main.ast.declarations.Module;
-import main.ast.types.*;
 import main.ast.declarations.*;
+import main.ast.declarations.Module;
 import main.ast.statements.*;
 import main.ast.expressions.*;
+import main.ast.expressions.literals.*;
+import main.ast.types.*;
 
 public abstract class Visitor<T> implements IVisitor<T> {
-    @Override public T visit(Program program) { return null; }
-    @Override public T visit(Module module) { return null; }
-    @Override public T visit(ModuleDecl moduleDecl) { return null; }
-    @Override public T visit(Struct struct) { return null; }
-    @Override public T visit(StructDecl structDecl) { return null; }
-    @Override public T visit(Method method) { return null; }
-    @Override public T visit(Parameter parameter) { return null; }
-    @Override public T visit(Var varDeclaration) { return null; }
-    @Override public T visit(AssignStmt assignStmt) { return null; }
-    @Override public T visit(Block block) { return null; }
-    @Override public T visit(BreakJump breakJump) { return null; }
-    @Override public T visit(ContinueJump continueJump) { return null; }
-    @Override public T visit(ForStmt forStmt) { return null; }
-    @Override public T visit(IfStmt ifStmt) { return null; }
-    @Override public T visit(InputStmt inputStmt) { return null; }
-    @Override public T visit(MethodCallStmt methodCallStmt) { return null; }
-    @Override public T visit(OutputStmt outputStmt) { return null; }
-    @Override public T visit(ReturnStmt returnStmt) { return null; }
-    @Override public T visit(VarDeclStmt varDeclStmt) { return null; }
-    @Override public T visit(WhileStmt whileStmt) { return null; }
-    @Override public T visit(BinaryExpression binaryExpression) { return null; }
-    @Override public T visit(UnaryExpression unaryExpression) { return null; }
-    @Override public T visit(IntValue intValue) { return null; }
-    @Override public T visit(FloatValue floatValue) { return null; }
-    @Override public T visit(BoolValue boolValue) { return null; }
-    @Override public T visit(CharValue charValue) { return null; }
-    @Override public T visit(DoubleValue doubleValue) { return null; }
+    
+    @Override public T visit(Program nodeProgram) { return null; }
+    @Override public T visit(Module nodeModule) { return null; }
+    @Override public T visit(ModuleDecl moduleDeclaration) { return null; }
+    @Override public T visit(Struct astStruct) { return null; }
+    @Override public T visit(StructDecl structDeclaration) { return null; }
+    @Override public T visit(Method astMethod) { return null; }
+    @Override public T visit(MethodDecl methodDeclaration) { return null; }
+    @Override public T visit(Parameter astParameter) { return null; }
+    @Override public T visit(Var astVar) { return null; }
+    @Override public T visit(VarDecl varDeclaration) { return null; }
+
+    @Override public T visit(AssignStmt assignmentStatement) { return null; }
+    @Override public T visit(Block codeBlock) { return null; }
+    @Override public T visit(BreakJump breakStatement) { return null; }
+    @Override public T visit(ContinueJump continueStatement) { return null; }
+    @Override public T visit(ForStmt forLoopStatement) { return null; }
+    @Override public T visit(IfStmt conditionalStatement) { return null; }
+    @Override public T visit(InputStmt streamInputStatement) { return null; }
+    @Override public T visit(MethodCallStmt invocationStatement) { return null; }
+    @Override public T visit(OutputStmt streamOutputStatement) { return null; }
+    @Override public T visit(ReturnStmt procedureReturnStatement) { return null; }
+    @Override public T visit(VarDeclStmt variableDeclarationStatement) { return null; }
+    @Override public T visit(WhileStmt whileLoopStatement) { return null; }
+
+    @Override public T visit(BinaryExpression binExpr) { return null; }
+    @Override public T visit(UnaryExpression unExpr) { return null; }
+    @Override public T visit(ThisExpr selfExpression) { return null; }
+    @Override public T visit(MethodCall functionCall) { return null; }
+    @Override public T visit(ConstructorCall instantiationCall) { return null; }
+    @Override public T visit(SimpleLoc basicLocation) { return null; }
+    @Override public T visit(MemberLoc structuralMemberLocation) { return null; }
+    @Override public T visit(ThisLoc selfReferencingLocation) { return null; }
+    @Override public T visit(Identifier nodeIdentifier) { return null; }
+
+    @Override public T visit(IntLiteral integerConstant) { return null; }
+    @Override public T visit(FloatLiteral floatConstant) { return null; }
+    @Override public T visit(DoubleLiteral doubleConstant) { return null; }
+    @Override public T visit(CharLiteral characterConstant) { return null; }
+    @Override public T visit(BoolLiteral booleanConstant) { return null; }
+
+    @Override public T visit(IntType primitiveIntType) { return null; }
+    @Override public T visit(FloatType primitiveFloatType) { return null; }
+    @Override public T visit(DoubleType primitiveDoubleType) { return null; }
+    @Override public T visit(CharType primitiveCharType) { return null; }
+    @Override public T visit(BoolType primitiveBoolType) { return null; }
+    @Override public T visit(VoidType proceduralVoidType) { return null; }
+    @Override public T visit(StructType userDefinedStructType) { return null; }
 }

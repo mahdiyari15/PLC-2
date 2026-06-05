@@ -1,0 +1,10 @@
+struct User begin
+    public int id;
+    float rating;
+end
+
+module AuthSystem begin
+    public void register(User u) begin
+        output 0;
+    end
+end

@@ -22,4 +22,4 @@ public class MethodCallStmt extends Statement {
     public void setMethodCall(MethodCall methodCall) {
         this.methodCall = methodCall;
     }
-}
+} 

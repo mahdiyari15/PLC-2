@@ -15,4 +15,4 @@ public abstract class Member extends Node {
     public void setAccessModifier(AccessModifier accessModifier) {
         this.accessModifier = accessModifier;
     }
-}
+} 

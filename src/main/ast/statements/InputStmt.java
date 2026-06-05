@@ -22,4 +22,4 @@ public class InputStmt extends Statement {
     public void setLoc(Location loc) {
         this.loc = loc;
     }
-}
+} 

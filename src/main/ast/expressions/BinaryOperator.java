@@ -1,5 +1,16 @@
-package main.ast.expressions; // change
+package main.ast.expressions;
 
 public enum BinaryOperator {
-    ADD, SUB, MULT, DIV, GT, LT, GTE, LTE, EQ, NEQ, AND, OR
+    PLUS,
+    MINUS,
+    MULT,
+    DIV,
+    LESS,
+    GREATER,
+    LESS_EQ,
+    GREATER_EQ,
+    EQUAL,
+    NOT_EQUAL,
+    AND,
+    OR
 }

@@ -1,0 +1,80 @@
+1:
+program [modules:2 structs:0]
+        module MutabilityTest [methods:1 fields:0]
+                method calculateNewValue (int -> int):public [statements:1]
+        module Main [methods:1 fields:0]
+                method main (void -> void):public [statements:3]
+2: 
+program [modules:1 structs:0]
+        module Main [methods:1 fields:0]
+                method main (void -> void) [statements:5]
+3:
+program [modules:2 structs:0]
+        module Account [methods:3 fields:1]
+                field balance int:private
+                method Account (int -> void):public [statements:1]
+                method getBalance (void -> int):public [statements:1]
+                method deposit (int -> void):public [statements:1]
+        module Main [methods:1 fields:0]
+                method main (void -> void):public [statements:5]
+4:
+program [modules:3 structs:0]
+        module Engine [methods:1 fields:1]
+                field power int:public
+                method setPower (int -> void):public [statements:1]
+        module Car [methods:2 fields:1]
+                field wheels int:private
+                method buildCar (int -> void):public [statements:2]
+                method getCarPower (void -> int):public [statements:1]
+        module Main [methods:1 fields:0]
+                method main (void -> void):public [statements:3]
+5:
+program [modules:2 structs:0]
+        module Math [methods:1 fields:0]
+                method factorial (int -> int):public [statements:4]
+        module Main [methods:1 fields:0]
+                method main (void -> void):public [statements:3]
+6:
+program [modules:3 structs:0]
+        module DataPacket [methods:3 fields:2]
+                field id int:private
+                field payload int:private
+                method init (int*int -> void):public [statements:2]
+                method getPayload (void -> int):public [statements:1]
+                method setPayload (int -> void):public [statements:1]
+        module OwnershipTest [methods:1 fields:0]
+                method processPacket (DataPacket -> DataPacket):public [statements:4]
+        module Main [methods:1 fields:0]
+                method main (void -> void):public [statements:4]
+7:
+program [modules:3 structs:1]
+        struct Point [fields:2]
+                field x float:public
+                field y float:public
+        module MathUtils [methods:2 fields:0]
+                method multiply (float*float -> float):public [statements:3]
+                method isPositive (float -> bool):public [statements:3]
+        module Geometry [methods:1 fields:0]
+                method processPoint (void -> void):public [statements:8]
+        module Main [methods:1 fields:0]
+                method main (void -> void):public [statements:1]
+8:
+program [modules:4 structs:1]
+        module LoopTester [methods:2 fields:1]
+                field stepCounter int:private
+                method reset (void -> void):public [statements:1]
+                method runLoops (void -> void):public [statements:7]
+        module Main [methods:1 fields:0]
+                method main (void -> void):public [statements:1]
+        struct Point [fields:2]
+                field x float:public
+                field y float:public
+        module DataPacket [methods:3 fields:2]
+                field id int:private
+                field payload int:private
+                method init (int*int -> void):public [statements:2]
+                method getPayload (void -> int):public [statements:1]
+                method setPayload (int -> void):public [statements:1]
+        module OwnershipTest [methods:1 fields:0]
+                method processPacket (DataPacket -> DataPacket):public [statements:2]
+                

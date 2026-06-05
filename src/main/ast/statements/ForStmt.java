@@ -1,33 +1,56 @@
-package main.ast.statements; // change
+package main.ast.statements;
 
 import main.ast.expressions.Expression;
-import java.util.List;
 import main.visitor.IVisitor;
+import java.util.List;
+import java.util.ArrayList;
 
 public class ForStmt extends Statement {
-    private List<Statement> initialization;
-    private Expression condition;
-    private List<Statement> update;
-    private Statement body;
+    private final List<Statement> initStatements;
+    private final List<AssignStmt> updateStatements;
+    private Expression loopCondition;
+    private Statement loopBody;
 
-    public ForStmt(List<Statement> initialization, Expression condition, List<Statement> update, Statement body) {
-        this.initialization = initialization;
-        this.condition = condition;
-        this.update = update;
-        this.body = body;
+    public ForStmt() {
+        this.initStatements = new ArrayList<>();
+        this.updateStatements = new ArrayList<>();
     }
 
-    public List<Statement> getInitialization() { return initialization; }
-    public void setInitialization(List<Statement> initialization) { this.initialization = initialization; }
+    public void addInit(Statement initBlock) {
+        if (initBlock != null) {
+            this.initStatements.add(initBlock);
+        }
+    }
 
-    public Expression getCondition() { return condition; }
-    public void setCondition(Expression condition) { this.condition = condition; }
+    public void addUpdate(AssignStmt assignExpr) {
+        if (assignExpr != null) {
+            this.updateStatements.add(assignExpr);
+        }
+    }
 
-    public List<Statement> getUpdate() { return update; }
-    public void setUpdate(List<Statement> update) { this.update = update; }
+    public List<Statement> getInitialize() {
+        return this.initStatements;
+    }
 
-    public Statement getBody() { return body; }
-    public void setBody(Statement body) { this.body = body; }
+    public Expression getCondition() {
+        return this.loopCondition;
+    }
+
+    public void setCondition(Expression loopCondition) {
+        this.loopCondition = loopCondition;
+    }
+
+    public List<AssignStmt> getUpdate() {
+        return this.updateStatements;
+    }
+
+    public Statement getBody() {
+        return this.loopBody;
+    }
+
+    public void setBody(Statement loopBody) {
+        this.loopBody = loopBody;
+    }
 
     @Override
     public <T> T accept(IVisitor<T> visitor) {

@@ -1,0 +1,5 @@
+module SimpleModule begin
+    void sayHello() begin
+        output 1;
+    end
+end

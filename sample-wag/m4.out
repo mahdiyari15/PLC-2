@@ -1,0 +1,5 @@
+program [modules:1 structs:0]
+        module NetworkNode [methods:2 fields:1]
+                field isActive bool:private
+                method initialize (int*bool*double -> void) [statements:1]
+                method checkStatus (void -> bool):public [statements:1]

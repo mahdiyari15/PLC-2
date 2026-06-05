@@ -9,4 +9,4 @@ module MutabilityTest begin
         counter = calculateNewValue(counter);
         output counter;
     end
-end
+end  

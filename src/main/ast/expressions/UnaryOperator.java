@@ -1,5 +1,6 @@
-package main.ast.expressions; // change
+package main.ast.expressions;
 
 public enum UnaryOperator {
-    MINUS, NOT
+    MINUS,
+    NOT
 }

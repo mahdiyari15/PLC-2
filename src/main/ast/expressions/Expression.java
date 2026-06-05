@@ -1,7 +1,9 @@
-package main.ast.expressions; // change
+package main.ast.expressions;
 
-import main.ast.core.ASTNode;
+import main.ast.core.Node;
 
-public abstract class Expression extends ASTNode {
-
+public abstract class Expression extends Node {
+    
+    protected Expression() {
+    }
 }

@@ -1,0 +1,12 @@
+program [modules:1 structs:2]
+	struct HyperParams [fields:3]
+		field learningRate float:public
+		field maxDepth int
+		field nEstimators int:public
+	struct Model [fields:3]
+		field params HyperParams:public
+		field isTrained bool:public
+		field lossValue float
+	module LTRPipeline [methods:2 fields:0]
+		method initModel (float*int -> Model):public [statements:4]
+		method trainEnsemble (void -> void) [statements:8]

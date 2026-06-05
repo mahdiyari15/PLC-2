@@ -1,0 +1,14 @@
+program [modules:2 structs:0]
+	module ClusterNode [methods:2 fields:2]
+		field nodeId int
+		field isActive bool:public
+		method startNode (void -> void):public [statements:1]
+		method stopNode (void -> void):public [statements:1]
+	module EventBroker [methods:4 fields:3]
+		field partitionCount int:public
+		field throughput float:public
+		field droppedEvents int
+		method ingestBatch (int*float*bool*char -> void):public [statements:4]
+		method scaleCluster (int -> void) [statements:2]
+		method calculateMetrics (void -> float):public [statements:1]
+		method idleWorker (void -> void) [statements:0]

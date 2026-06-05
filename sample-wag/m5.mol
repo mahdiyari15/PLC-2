@@ -1,0 +1,43 @@
+struct HyperParams begin
+    public float learningRate;
+    int maxDepth;
+    public int nEstimators;
+end
+
+struct Model begin
+    public HyperParams params;
+    public bool isTrained;
+    mut float lossValue;
+end
+
+module LTRPipeline begin
+    public Model initModel(float lr, int depth) begin
+        mut Model(lr, depth) m;
+        mut int i = 0;
+
+        while (i < 10) begin
+            m.lossValue = m.lossValue - 0.1;
+            i = i + 1;
+        end
+
+        return m;
+    end
+
+    void trainEnsemble() begin
+        mut Model m1;
+        mut Model m2;
+        mut Model m3;
+
+        m1 = initModel(0.01, 5);
+        m2 = initModel(0.05, 3);
+        m3 = initModel(0.1, 7);
+
+        if (m1.lossValue < m2.lossValue) begin
+            output m1.lossValue;
+        end else begin
+            output m2.lossValue;
+        end
+
+        return;
+    end
+end

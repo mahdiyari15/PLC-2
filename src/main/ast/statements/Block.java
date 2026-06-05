@@ -10,7 +10,7 @@ public class Block extends Statement {
 
     public Block() {
         this.statements = new ArrayList<>();
-    }
+    } 
 
     public void addStatement(Statement statement) {
         statements.add(statement);

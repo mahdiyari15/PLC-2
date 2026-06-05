@@ -1,22 +1,32 @@
-package main.ast.statements; // change
+package main.ast.statements;
 
 import main.ast.expressions.Expression;
 import main.visitor.IVisitor;
 
 public class WhileStmt extends Statement {
-    private Expression condition;
-    private Statement body;
+    private Expression terminationCondition;
+    private Statement executableBody;
 
-    public WhileStmt(Expression condition, Statement body) {
-        this.condition = condition;
-        this.body = body;
+    public WhileStmt(Expression terminationCondition, Statement executableBody) {
+        this.terminationCondition = terminationCondition;
+        this.executableBody = executableBody;
     }
 
-    public Expression getCondition() { return condition; }
-    public void setCondition(Expression condition) { this.condition = condition; }
+    public Statement getBody() {
+        return this.executableBody;
+    }
 
-    public Statement getBody() { return body; }
-    public void setBody(Statement body) { this.body = body; }
+    public void setBody(Statement executableBody) {
+        this.executableBody = executableBody;
+    }
+
+    public Expression getCondition() {
+        return this.terminationCondition;
+    }
+
+    public void setCondition(Expression terminationCondition) {
+        this.terminationCondition = terminationCondition;
+    }
 
     @Override
     public <T> T accept(IVisitor<T> visitor) {

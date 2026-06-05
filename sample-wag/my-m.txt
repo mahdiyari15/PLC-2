@@ -1,0 +1,51 @@
+1:
+program [modules:1 structs:0]
+        module SimpleModule [methods:1 fields:0]
+                method sayHello (void -> void) [statements:1]
+2:
+program [modules:1 structs:0]
+        module Calculator [methods:1 fields:2]
+                field baseValue int:private
+                field offset int:public
+                method compute (int*float -> int):public [statements:1]
+3:
+program [modules:1 structs:1]
+        struct User [fields:2]
+                field id int:public
+                field rating float
+        module AuthSystem [methods:1 fields:0]
+                method register (User -> void):public [statements:1]
+4:
+program [modules:1 structs:0]
+        module NetworkNode [methods:2 fields:1]
+                field isActive bool:private
+                method initialize (int*bool*double -> void) [statements:1]
+                method checkStatus (void -> bool):public [statements:1]
+5:
+program [modules:1 structs:2]
+        struct HyperParams [fields:3]
+                field learningRate float:public
+                field maxDepth int
+                field nEstimators int:public
+        struct Model [fields:3]
+                field params HyperParams:public
+                field isTrained bool:public
+                field lossValue float
+        module LTRPipeline [methods:2 fields:0]
+                method initModel (float*int -> Model):public [statements:4]
+                method trainEnsemble (void -> void) [statements:8]
+6:
+program [modules:2 structs:0]
+        module ClusterNode [methods:2 fields:2]
+                field nodeId int
+                field isActive bool:public
+                method startNode (void -> void):public [statements:1]
+                method stopNode (void -> void):public [statements:1]
+        module EventBroker [methods:4 fields:3]
+                field partitionCount int:public
+                field throughput float:public
+                field droppedEvents int
+                method ingestBatch (int*float*bool*char -> void):public [statements:4]
+                method scaleCluster (int -> void) [statements:2]
+                method calculateMetrics (void -> float):public [statements:1]
+                method idleWorker (void -> void) [statements:0]

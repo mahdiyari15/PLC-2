@@ -18,12 +18,7 @@ public class SimpleLang {
 
         Program program = parser.program().programRet;
 
-        System.out.println();
-
-        TestVisitor testVisitor = new TestVisitor();
         PrintVisitor printVisitor = new PrintVisitor();
-        testVisitor.visit(program);
         printVisitor.visit(program);
-        System.out.println();
     }
 }

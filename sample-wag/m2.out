@@ -1,0 +1,5 @@
+program [modules:1 structs:0]
+        module Calculator [methods:1 fields:2]
+                field baseValue int:private
+                field offset int:public
+                method compute (int*float -> int):public [statements:1]

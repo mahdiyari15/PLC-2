@@ -1,11 +1,12 @@
-// Generated from c:/Users/User/Desktop/TERM 6/PLC/my CAs/CA2/template/src/main/grammar/SimpleLang.g4 by ANTLR 4.13.1
+// Generated from c:/Users/User/Desktop/TERM 6/PLC/my CAs/CA2/template/AMIR/main/grammar/SimpleLang.g4 by ANTLR 4.13.1
 
     import main.ast.core.*;
-
     import main.ast.declarations.*;
     import main.ast.declarations.Module;
     import main.ast.statements.*;
-
+    import main.ast.expressions.*;
+    import main.ast.expressions.literals.*;
+    import main.ast.types.*;
 
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
